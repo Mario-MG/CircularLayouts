@@ -1,12 +1,18 @@
 package com.mariomg.circularrow.ui.composables
 
-import androidx.compose.runtime.Composable
+import android.util.Log
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 @Composable
 fun CircularRow(
@@ -20,7 +26,7 @@ fun CircularRow(
         modifier = modifier,
         content = content,
     ) { measurables, constraints ->
-        val newConstraints = when (itemsConstraint) {
+        val newConstraints = when (itemsConstraint) { // TODO: Refactor
             CircularRowItemsConstraint.NONE -> constraints.copy(
                 minWidth = 0,
                 minHeight = 0,
@@ -79,6 +85,57 @@ fun CircularRow(
         }
     }
 }
+@Composable
+fun CircularRow(
+    modifier: Modifier = Modifier,
+    radius: Dp,
+    rotatableState: RotatableState,
+    itemsConstraint: CircularRowItemsConstraint = CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
+    content: @Composable () -> Unit,
+) {
+    val offset  = rotatableState.angularOffset
+
+    CircularRow(
+        modifier = modifier,
+        radius = radius,
+        angularOffset = offset,
+        itemsConstraint = itemsConstraint,
+        content = content,
+    )
+}
+
+class RotatableState(initialAngularOffset: Float = 0f) {
+    private var _angularOffset by mutableStateOf(initialAngularOffset)
+    var angularOffset: Float
+        get() = _angularOffset
+        private set(value) {
+            if (value != _angularOffset) {
+                _angularOffset = value
+            }
+        }
+
+    fun rotateBy(angularOffset: Float) {
+        this.angularOffset += angularOffset
+    }
+
+    fun rotateTo(angularOffset: Float) {
+        this.angularOffset = angularOffset
+    }
+
+    companion object {
+        val Saver: Saver<RotatableState, *> = Saver(
+            save = { it._angularOffset },
+            restore = { RotatableState(it) }
+        )
+    }
+}
+
+@Composable
+fun rememberRotatableState(initialAngularOffset: Float = 0f): RotatableState {
+    return rememberSaveable(saver = RotatableState.Saver) {
+        RotatableState(initialAngularOffset = initialAngularOffset)
+    }
+}
 
 enum class CircularRowItemsConstraint {
     NONE,
@@ -87,4 +144,57 @@ enum class CircularRowItemsConstraint {
     CONSTRAIN_TO_PARENT_AND_SIBLINGS,
 }
 
-private fun Float.degToRad() = this * PI / 180
+fun Modifier.rotatable(rotatableState: RotatableState) = composed {
+    var center by remember { mutableStateOf(Offset(0f, 0f)) }
+    var startPositionPolar by remember { mutableStateOf(PolarCoordinates(0f, 0f)) }
+    var endPositionPolar by remember { mutableStateOf(PolarCoordinates(0f, 0f)) }
+    onGloballyPositioned { coordinates ->
+        val size = coordinates.size
+        Log.d("TEST", "center: $center")
+        center = Offset(
+            x = size.width / 2f,
+            y = size.height / 2f,
+        )
+    }.then(
+        Modifier.pointerInput(Unit) {
+            detectDragGestures { change, dragAmount ->
+                change.consume()
+                val startPositionFromCenter = change.previousPosition - center
+                Log.d("TEST", "startPos: $startPositionFromCenter")
+                val endPositionFromCenter = startPositionFromCenter + dragAmount
+                Log.d("TEST", "endPos: $endPositionFromCenter")
+                startPositionPolar = startPositionFromCenter.toPolarCoordinates()
+                Log.d("TEST", "startPosPolar: $startPositionPolar")
+                endPositionPolar = endPositionFromCenter.toPolarCoordinates()
+                Log.d("TEST", "endPosPolar: $endPositionPolar")
+                val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).radToDeg()
+                Log.d("TEST", "offsetInc: $angleOffsetInc")
+                rotatableState.rotateBy(angleOffsetInc)
+            }
+        }
+    )
+}
+
+data class PolarCoordinates(
+    val radius: Float,
+    val angle: Float,
+) {
+    fun toOffset() = Offset(
+        x = radius * sin(angle),
+        y = -radius * cos(angle),
+    )
+}
+
+fun Offset.toPolarCoordinates() = PolarCoordinates(
+    radius = sqrt(x * x + y * y),
+    angle = when {
+        x >= 0 && y < 0 -> atan(-x / y)
+        x >= 0 && y >= 0 -> (atan(y / x) + PI / 2).toFloat()
+        x < 0 && y >= 0 -> (atan(-x / y) + PI).toFloat()
+        else -> (atan(y / x) + 3 * PI / 2).toFloat()
+    },
+)
+
+fun Float.degToRad() = (this * PI / 180).toFloat()
+
+fun Float.radToDeg() = (this * 180 / PI).toFloat()
