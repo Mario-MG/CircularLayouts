@@ -1,17 +1,13 @@
 package com.mariomg.circularrow.ui.composables
 
-import android.util.Log
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import com.mariomg.circularrow.model.PI
+import com.mariomg.circularrow.model.PolarCoordinates
+import com.mariomg.circularrow.model.degToRad
 import kotlin.math.*
 
 @Composable
@@ -26,60 +22,29 @@ fun CircularRow(
         modifier = modifier,
         content = content,
     ) { measurables, constraints ->
-        val newConstraints = when (itemsConstraint) { // TODO: Refactor
-            CircularRowItemsConstraint.NONE -> constraints.copy(
-                minWidth = 0,
-                minHeight = 0,
-            )
-            CircularRowItemsConstraint.CONSTRAIN_TO_PARENT -> {
-                val newMaxWidth = constraints.maxWidth - 2 * radius.value.toInt()
-                val newMaxHeight = constraints.maxHeight - 2 * radius.value.toInt()
-                check(newMaxWidth > 0) { "Radius cannot be greater than half the parent's width" }
-                check(newMaxHeight > 0) { "Radius cannot be greater than half the parent's height" }
-                constraints.copy(
-                    minWidth = 0,
-                    minHeight = 0,
-                    maxWidth = newMaxWidth,
-                    maxHeight = newMaxHeight,
-                )
-            }
-            CircularRowItemsConstraint.CONSTRAIN_TO_SIBLINGS -> {
-                val itemRadius = radius.value * sin(PI / measurables.size)
-                val newMaxSize = (2 * itemRadius * sin(PI / 4)).toInt()
-                constraints.copy(
-                    minWidth = 0,
-                    minHeight = 0,
-                    maxWidth = newMaxSize,
-                    maxHeight = newMaxSize,
-                )
-            }
-            CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS -> { // TODO: Refactor
-                val newMaxWidth = constraints.maxWidth - 2 * radius.value.toInt()
-                val newMaxHeight = constraints.maxHeight - 2 * radius.value.toInt()
-                check(newMaxWidth > 0) { "Radius cannot be greater than half the parent's width" }
-                check(newMaxHeight > 0) { "Radius cannot be greater than half the parent's height" }
-                val itemRadius = radius.value * sin(PI / measurables.size)
-                val newMaxSize = (2 * itemRadius * sin(PI / 4)).toInt()
-                constraints.copy(
-                    minWidth = 0,
-                    minHeight = 0,
-                    maxWidth = Integer.min(newMaxWidth, newMaxSize),
-                    maxHeight = Integer.min(newMaxHeight, newMaxSize),
-                )
-            }
-        }
-        val placeables = measurables.map { measurable ->
-            measurable.measure(newConstraints)
-        }
+        val newConstraints = itemsConstraint.calculateConstraints(
+            parentConstraints = constraints,
+            radius = radius.value,
+            numberOfSiblings = measurables.size,
+        )
         val centerX = constraints.maxWidth / 2
         val centerY = constraints.maxHeight / 2
 
+        val placeables = measurables.map { measurable ->
+            measurable.measure(newConstraints)
+        }
+        val angleInc = 2 * PI / placeables.size
+
         layout(width = constraints.maxWidth, height = constraints.maxHeight) {
             placeables.forEachIndexed { index, placeable ->
+                val polarCoordinates = PolarCoordinates(
+                    radius = radius.value,
+                    angle = angularOffset.degToRad() + index * angleInc,
+                )
+                val coordinates = polarCoordinates.toOffset()
                 placeable.placeRelative(
-                    // TODO: Refactor
-                    x = (centerX + radius.value * sin(angularOffset.degToRad() + index * (2 * PI / placeables.size))).toInt() - placeable.width / 2,
-                    y = (centerY - radius.value * cos(angularOffset.degToRad() + index * (2 * PI / placeables.size))).toInt() - placeable.height / 2,
+                    x = (centerX + coordinates.x).toInt() - placeable.width / 2,
+                    y = (centerY + coordinates.y).toInt() - placeable.height / 2,
                 )
             }
         }
@@ -104,97 +69,80 @@ fun CircularRow(
     )
 }
 
-class RotatableState(initialAngularOffset: Float = 0f) {
-    private var _angularOffset by mutableStateOf(initialAngularOffset)
-    var angularOffset: Float
-        get() = _angularOffset
-        private set(value) {
-            if (value != _angularOffset) {
-                _angularOffset = value
-            }
-        }
-
-    fun rotateBy(angularOffset: Float) {
-        this.angularOffset += angularOffset
-    }
-
-    fun rotateTo(angularOffset: Float) {
-        this.angularOffset = angularOffset
-    }
-
-    companion object {
-        val Saver: Saver<RotatableState, *> = Saver(
-            save = { it._angularOffset },
-            restore = { RotatableState(it) }
-        )
-    }
-}
-
-@Composable
-fun rememberRotatableState(initialAngularOffset: Float = 0f): RotatableState {
-    return rememberSaveable(saver = RotatableState.Saver) {
-        RotatableState(initialAngularOffset = initialAngularOffset)
-    }
-}
-
 enum class CircularRowItemsConstraint {
-    NONE,
-    CONSTRAIN_TO_PARENT,
-    CONSTRAIN_TO_SIBLINGS,
-    CONSTRAIN_TO_PARENT_AND_SIBLINGS,
-}
-
-fun Modifier.rotatable(rotatableState: RotatableState) = composed {
-    var center by remember { mutableStateOf(Offset(0f, 0f)) }
-    var startPositionPolar by remember { mutableStateOf(PolarCoordinates(0f, 0f)) }
-    var endPositionPolar by remember { mutableStateOf(PolarCoordinates(0f, 0f)) }
-    onGloballyPositioned { coordinates ->
-        val size = coordinates.size
-        Log.d("TEST", "center: $center")
-        center = Offset(
-            x = size.width / 2f,
-            y = size.height / 2f,
+    NONE {
+        override fun calculateConstraints(
+            parentConstraints: Constraints,
+            radius: Float,
+            numberOfSiblings: Int,
+        ) = parentConstraints.copy(
+            minWidth = 0,
+            minHeight = 0,
         )
-    }.then(
-        Modifier.pointerInput(Unit) {
-            detectDragGestures { change, dragAmount ->
-                change.consume()
-                val startPositionFromCenter = change.previousPosition - center
-                Log.d("TEST", "startPos: $startPositionFromCenter")
-                val endPositionFromCenter = startPositionFromCenter + dragAmount
-                Log.d("TEST", "endPos: $endPositionFromCenter")
-                startPositionPolar = startPositionFromCenter.toPolarCoordinates()
-                Log.d("TEST", "startPosPolar: $startPositionPolar")
-                endPositionPolar = endPositionFromCenter.toPolarCoordinates()
-                Log.d("TEST", "endPosPolar: $endPositionPolar")
-                val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).radToDeg()
-                Log.d("TEST", "offsetInc: $angleOffsetInc")
-                rotatableState.rotateBy(angleOffsetInc)
-            }
-        }
-    )
-}
-
-data class PolarCoordinates(
-    val radius: Float,
-    val angle: Float,
-) {
-    fun toOffset() = Offset(
-        x = radius * sin(angle),
-        y = -radius * cos(angle),
-    )
-}
-
-fun Offset.toPolarCoordinates() = PolarCoordinates(
-    radius = sqrt(x * x + y * y),
-    angle = when {
-        x >= 0 && y < 0 -> atan(-x / y)
-        x >= 0 && y >= 0 -> (atan(y / x) + PI / 2).toFloat()
-        x < 0 && y >= 0 -> (atan(-x / y) + PI).toFloat()
-        else -> (atan(y / x) + 3 * PI / 2).toFloat()
     },
-)
+    CONSTRAIN_TO_PARENT {
+        override fun calculateConstraints(
+            parentConstraints: Constraints,
+            radius: Float,
+            numberOfSiblings: Int,
+        ): Constraints {
+            val newMaxWidth = parentConstraints.maxWidth - 2 * radius.toInt()
+            val newMaxHeight = parentConstraints.maxHeight - 2 * radius.toInt()
+            check(newMaxWidth > 0) { "Radius cannot be greater than half the parent's width" }
+            check(newMaxHeight > 0) { "Radius cannot be greater than half the parent's height" }
+            return parentConstraints.copy(
+                minWidth = 0,
+                minHeight = 0,
+                maxWidth = newMaxWidth,
+                maxHeight = newMaxHeight,
+            )
+        }
+    },
+    CONSTRAIN_TO_SIBLINGS {
+        override fun calculateConstraints(
+            parentConstraints: Constraints,
+            radius: Float,
+            numberOfSiblings: Int,
+        ): Constraints {
+            val itemRadius = radius * sin(PI / numberOfSiblings)
+            val newMaxSize = (2 * itemRadius * sin(PI / 4)).toInt()
+            return parentConstraints.copy(
+                minWidth = 0,
+                minHeight = 0,
+                maxWidth = newMaxSize,
+                maxHeight = newMaxSize,
+            )
+        }
+    },
+    CONSTRAIN_TO_PARENT_AND_SIBLINGS {
+        override fun calculateConstraints(
+            parentConstraints: Constraints,
+            radius: Float,
+            numberOfSiblings: Int,
+        ): Constraints {
+            val constraintsToParent = CONSTRAIN_TO_PARENT.calculateConstraints(
+                parentConstraints = parentConstraints,
+                radius = radius,
+                numberOfSiblings = numberOfSiblings,
+            )
+            val constraintsToSiblings = CONSTRAIN_TO_SIBLINGS.calculateConstraints(
+                parentConstraints = parentConstraints,
+                radius = radius,
+                numberOfSiblings = numberOfSiblings,
+            )
+            return parentConstraints.copy(
+                minWidth = 0,
+                minHeight = 0,
+                maxWidth = Integer.min(constraintsToParent.maxWidth, constraintsToSiblings.maxWidth),
+                maxHeight = Integer.min(constraintsToParent.maxHeight, constraintsToSiblings.maxHeight),
+            )
+        }
+    },
+    ;
 
-fun Float.degToRad() = (this * PI / 180).toFloat()
-
-fun Float.radToDeg() = (this * 180 / PI).toFloat()
+    abstract fun calculateConstraints(
+        parentConstraints: Constraints,
+        radius: Float,
+        numberOfSiblings: Int,
+    ): Constraints
+}
