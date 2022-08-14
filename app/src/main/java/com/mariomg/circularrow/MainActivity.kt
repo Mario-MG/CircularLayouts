@@ -30,9 +30,15 @@ class MainActivity : ComponentActivity() {
                     val rotatableState = rememberRotatableState(0f)
                     LaunchedEffect(null) {
                         delay(4000)
-                        rotatableState.animateRotateBy(144f, animationSpec = tween(2000))
+                        rotatableState.animateRotateBy(144f)
                         delay(2000)
                         rotatableState.animateRotateTo(-72f)
+                        delay(4000)
+                        rotatableState.animateRotateBy(452f)
+                        delay(2000)
+                        rotatableState.animateRotateTo(720f)
+                        delay(2000)
+                        rotatableState.rotateInfinitely(2000)
                     }
                     CircularRow(
                         modifier = Modifier

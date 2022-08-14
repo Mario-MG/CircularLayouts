@@ -1,8 +1,6 @@
 package com.mariomg.circularrow.ui.composables
 
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,12 +9,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
 class RotatableState(initialAngularOffset: Float = 0f) {
+
     private var _angularOffset by mutableStateOf(initialAngularOffset)
     var angularOffset: Float
         get() = _angularOffset
         private set(value) {
-            if (value != _angularOffset) {
-                _angularOffset = value
+            if (value % 360 != _angularOffset) {
+                _angularOffset = value % 360
             }
         }
 
@@ -28,10 +27,14 @@ class RotatableState(initialAngularOffset: Float = 0f) {
 
     suspend fun animateRotateBy(
         angularOffset: Float,
-        animationSpec: AnimationSpec<Float> = tween()
+        animationSpec: AnimationSpec<Float> = tween(durationMillis = DEFAULT_ANIMATION_DURATION_MILLIS)
     ) {
         var previousValue = 0f
-        animate(0f, angularOffset, animationSpec = animationSpec) { currentValue, _ ->
+        animate(
+            initialValue = 0f,
+            targetValue = angularOffset,
+            animationSpec = animationSpec,
+        ) { currentValue, _ ->
             val increment = currentValue - previousValue
             rotateBy(increment)
             previousValue += increment
@@ -40,10 +43,21 @@ class RotatableState(initialAngularOffset: Float = 0f) {
 
     suspend fun animateRotateTo(
         angularOffset: Float,
-        animationSpec: AnimationSpec<Float> = tween()
+        animationSpec: AnimationSpec<Float> = tween(durationMillis = DEFAULT_ANIMATION_DURATION_MILLIS)
     ) = animateRotateBy(angularOffset - this.angularOffset, animationSpec)
 
+    suspend fun rotateInfinitely(durationMillisPerCycle: Int = DEFAULT_ANIMATION_DURATION_MILLIS) =
+        animateRotateTo(
+            angularOffset = 360f,
+            animationSpec = infiniteRepeatable(animation = TweenSpec(
+                durationMillis = durationMillisPerCycle,
+                easing = LinearEasing,
+            ))
+        )
+
     companion object {
+        private const val DEFAULT_ANIMATION_DURATION_MILLIS = 2000
+
         val Saver: Saver<RotatableState, Float> = Saver(
             save = { it._angularOffset },
             restore = { RotatableState(it) }
