@@ -54,11 +54,11 @@ fun CircularRow(
 fun CircularRow(
     modifier: Modifier = Modifier,
     radius: Dp,
-    rotatableState: RotatableState,
+    rotationState: RotationState,
     itemsConstraint: CircularRowItemsConstraint = CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
     content: @Composable () -> Unit,
 ) {
-    val offset  = rotatableState.angularOffset
+    val offset  = rotationState.angularOffset
 
     CircularRow(
         modifier = modifier,

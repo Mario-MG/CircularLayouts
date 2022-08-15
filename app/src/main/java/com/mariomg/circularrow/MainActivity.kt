@@ -27,25 +27,21 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.background),
                 ) {
-                    val rotatableState = rememberRotatableState(0f)
+                    val rotationState = rememberRotationState(0f)
                     LaunchedEffect(null) {
-                        delay(4000)
-                        rotatableState.animateRotateBy(144f)
                         delay(2000)
-                        rotatableState.animateRotateTo(-72f)
-                        delay(4000)
-                        rotatableState.animateRotateBy(452f)
-                        delay(2000)
-                        rotatableState.animateRotateTo(720f)
-                        delay(2000)
-                        rotatableState.rotateInfinitely(2000)
+                        rotationState.animateRotateTo(360f, animationSpec = tween(6000))
+                    }
+                    LaunchedEffect(null) {
+                        delay(5000)
+                        rotationState.stopRotation()
                     }
                     CircularRow(
                         modifier = Modifier
                             .weight(1f)
-                            .rotatable(rotatableState),
+                            .rotatable(rotationState),
                         radius = 300.dp,
-                        rotatableState = rotatableState,
+                        rotationState = rotationState,
                     ) {
                         for (index in 1..5) {
                             Text("Prueba de CircularRow $index", modifier = Modifier.background(Color.Red))
