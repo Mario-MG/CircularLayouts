@@ -16,6 +16,7 @@ fun CircularRow(
     radius: Dp,
     angularOffset: Float = 0f,
     itemsConstraint: CircularRowItemsConstraint = CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
+    direction: CircularRowDirection = CircularRowDirection.CLOCKWISE,
     content: @Composable () -> Unit,
 ) {
     Layout(
@@ -33,7 +34,11 @@ fun CircularRow(
         val placeables = measurables.map { measurable ->
             measurable.measure(newConstraints)
         }
-        val angleInc = 2 * PI / placeables.size
+        val angleIncAbsolute = 2 * PI / placeables.size
+        val angleInc = when (direction) {
+            CircularRowDirection.CLOCKWISE -> angleIncAbsolute
+            CircularRowDirection.COUNTERCLOCKWISE -> -angleIncAbsolute
+        }
 
         layout(width = constraints.maxWidth, height = constraints.maxHeight) {
             placeables.forEachIndexed { index, placeable ->
@@ -56,6 +61,7 @@ fun CircularRow(
     radius: Dp,
     rotationState: RotationState,
     itemsConstraint: CircularRowItemsConstraint = CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
+    direction: CircularRowDirection = CircularRowDirection.CLOCKWISE,
     content: @Composable () -> Unit,
 ) {
     val offset  = rotationState.angularOffset
@@ -65,8 +71,14 @@ fun CircularRow(
         radius = radius,
         angularOffset = offset,
         itemsConstraint = itemsConstraint,
+        direction = direction,
         content = content,
     )
+}
+
+enum class CircularRowDirection {
+    CLOCKWISE,
+    COUNTERCLOCKWISE,
 }
 
 enum class CircularRowItemsConstraint {
