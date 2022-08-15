@@ -104,7 +104,7 @@ enum class CircularRowItemsConstraint {
             radius: Float,
             numberOfSiblings: Int,
         ): Constraints {
-            val itemRadius = radius * sin(PI / numberOfSiblings)
+            val itemRadius = if (numberOfSiblings > 1) radius * sin(PI / numberOfSiblings) else radius
             val newMaxSize = (2 * itemRadius * sin(PI / 4)).toInt()
             return parentConstraints.copy(
                 minWidth = 0,
