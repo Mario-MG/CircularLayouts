@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.mariomg.circularrow.ui.composables.*
@@ -25,19 +24,20 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.background),
                 ) {
-                    val rotationState = rememberRotationState(90f)
+                    val rotationState = rememberRotationState(0f)
                     CircularRow(
                         modifier = Modifier
                             .weight(1f)
                             .rotatable(rotationState),
-                        radius = 200.dp,
+                        radius = 250.dp,
                         rotationState = rotationState,
-                        direction = CircularRowDirection.COUNTERCLOCKWISE,
+                        direction = CircularRowDirection.CLOCKWISE,
+                        itemRotation = CircularRowItemRotation.TANGENT,
                     ) {
                         for (index in 1..5) {
                             Text(
                                 "Prueba de CircularRow $index",
-                                modifier = Modifier.rotate(-90f - (index - 1) * 360f / 5 + rotationState.angularOffset).background(Color.Red),
+                                modifier = Modifier.background(Color.Red),
                             )
                         }
                     }
