@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import com.mariomg.circularrow.model.PI
 import com.mariomg.circularrow.model.PolarCoordinates
-import com.mariomg.circularrow.model.degToRad
 import kotlin.math.*
 
 @Composable
@@ -17,6 +16,7 @@ fun CircularRow(
     angularOffset: Float = 0f,
     itemsConstraint: CircularRowItemsConstraint = CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
     direction: CircularRowDirection = CircularRowDirection.CLOCKWISE,
+    itemRotation: Rotation = CircularRowItemRotation.NONE,
     content: @Composable () -> Unit,
 ) {
     Layout(
@@ -34,7 +34,7 @@ fun CircularRow(
         val placeables = measurables.map { measurable ->
             measurable.measure(newConstraints)
         }
-        val angleIncAbsolute = 2 * PI / placeables.size
+        val angleIncAbsolute = 360f / placeables.size
         val angleInc = when (direction) {
             CircularRowDirection.CLOCKWISE -> angleIncAbsolute
             CircularRowDirection.COUNTERCLOCKWISE -> -angleIncAbsolute
@@ -42,15 +42,18 @@ fun CircularRow(
 
         layout(width = constraints.maxWidth, height = constraints.maxHeight) {
             placeables.forEachIndexed { index, placeable ->
-                val polarCoordinates = PolarCoordinates(
+                val angle = angularOffset + index * angleInc
+                val polarCoordinates = PolarCoordinates.usingDegrees(
                     radius = radius.value,
-                    angle = angularOffset.degToRad() + index * angleInc,
+                    angleInDeg = angle,
                 )
                 val coordinates = polarCoordinates.toOffset()
-                placeable.placeRelative(
+                placeable.placeRelativeWithLayer(
                     x = (centerX + coordinates.x).toInt() - placeable.width / 2,
                     y = (centerY + coordinates.y).toInt() - placeable.height / 2,
-                )
+                ) {
+                    rotationZ = itemRotation(angle)
+                }
             }
         }
     }
@@ -62,6 +65,7 @@ fun CircularRow(
     rotationState: RotationState,
     itemsConstraint: CircularRowItemsConstraint = CircularRowItemsConstraint.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
     direction: CircularRowDirection = CircularRowDirection.CLOCKWISE,
+    itemRotation: Rotation = CircularRowItemRotation.NONE,
     content: @Composable () -> Unit,
 ) {
     val offset  = rotationState.angularOffset
@@ -72,6 +76,7 @@ fun CircularRow(
         angularOffset = offset,
         itemsConstraint = itemsConstraint,
         direction = direction,
+        itemRotation = itemRotation,
         content = content,
     )
 }
@@ -157,4 +162,14 @@ enum class CircularRowItemsConstraint {
         radius: Float,
         numberOfSiblings: Int,
     ): Constraints
+}
+
+typealias Rotation = (Float) -> Float
+
+object CircularRowItemRotation {
+    val NONE: Rotation = { 0f }
+    val TANGENT: Rotation = { it }
+    val PERPENDICULAR_CLOCKWISE: Rotation = { it + 90 }
+    val PERPENDICULAR_COUNTERCLOCKWISE: Rotation = { it - 90 }
+    val TANGENT_INVERSE: Rotation = { it + 180 }
 }

@@ -14,6 +14,16 @@ data class PolarCoordinates(
         x = radius * sin(angle),
         y = -radius * cos(angle),
     )
+
+    companion object {
+        fun usingDegrees(
+            radius: Float,
+            angleInDeg: Float,
+        ) = PolarCoordinates(
+            radius = radius,
+            angle = angleInDeg.degToRad()
+        )
+    }
 }
 
 fun Offset.toPolarCoordinates() = PolarCoordinates(
