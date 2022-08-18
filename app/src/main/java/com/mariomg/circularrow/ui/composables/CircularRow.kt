@@ -166,10 +166,13 @@ enum class CircularRowItemsConstraint {
 
 typealias Rotation = (Float) -> Float
 
-object CircularRowItemRotation {
-    val NONE: Rotation = { 0f }
-    val TANGENT: Rotation = { it }
-    val PERPENDICULAR_CLOCKWISE: Rotation = { it + 90 }
-    val PERPENDICULAR_COUNTERCLOCKWISE: Rotation = { it - 90 }
-    val TANGENT_INVERSE: Rotation = { it + 180 }
+enum class CircularRowItemRotation(private val rotation: Rotation) : Rotation {
+    NONE(rotation = { 0f }),
+    TANGENT(rotation = { it }),
+    PERPENDICULAR_CLOCKWISE(rotation = { it + 90 }),
+    PERPENDICULAR_COUNTERCLOCKWISE(rotation = { it - 90 }),
+    TANGENT_INVERSE(rotation = { it + 180 }),
+    ;
+
+    override fun invoke(angle: Float) = rotation(angle)
 }
