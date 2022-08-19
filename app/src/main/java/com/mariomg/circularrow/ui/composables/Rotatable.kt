@@ -8,7 +8,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.mariomg.circularrow.model.radToDeg
 import com.mariomg.circularrow.model.toPolarCoordinates
 import kotlinx.coroutines.launch
 
@@ -29,8 +28,8 @@ fun Modifier.rotatable(rotationState: RotationState) = composed {
                 val endPositionFromCenter = startPositionFromCenter + dragAmount
                 val startPositionPolar = startPositionFromCenter.toPolarCoordinates()
                 val endPositionPolar = endPositionFromCenter.toPolarCoordinates()
-                val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).radToDeg()
-                coroutineScope.launch { rotationState.rotateBy(angleOffsetInc) }
+                val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).toDegrees()
+                coroutineScope.launch { rotationState.rotateBy(angleOffsetInc.value) }
             }
         }.pointerInput(Unit) {
             detectTapGestures(

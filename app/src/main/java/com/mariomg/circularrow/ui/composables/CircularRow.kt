@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import com.mariomg.circularrow.model.PI
 import com.mariomg.circularrow.model.PolarCoordinates
+import com.mariomg.circularrow.model.degrees
 import kotlin.math.*
 
 @Composable
@@ -45,7 +46,7 @@ fun CircularRow(
                 val angle = angularOffset + index * angleInc
                 val polarCoordinates = PolarCoordinates.usingDegrees(
                     radius = radius.value,
-                    angleInDeg = angle,
+                    angle = angle.degrees,
                 )
                 val coordinates = polarCoordinates.toOffset()
                 placeable.placeRelativeWithLayer(
