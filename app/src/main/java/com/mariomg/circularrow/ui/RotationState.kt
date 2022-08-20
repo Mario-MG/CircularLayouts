@@ -1,4 +1,4 @@
-package com.mariomg.circularrow.ui.composables
+package com.mariomg.circularrow.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.MutatePriority

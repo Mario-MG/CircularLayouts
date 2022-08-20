@@ -11,7 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.mariomg.circularrow.ui.composables.*
+import com.mariomg.circularrow.ui.*
 import com.mariomg.circularrow.ui.theme.CircularRowTheme
 
 class MainActivity : ComponentActivity() {
