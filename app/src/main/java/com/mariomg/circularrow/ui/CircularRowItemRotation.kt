@@ -1,7 +1,7 @@
 package com.mariomg.circularrow.ui
 
-import com.mariomg.circularrow.model.unit.Degrees
-import com.mariomg.circularrow.model.unit.degrees
+import com.mariomg.circularlayouts.unit.Degrees
+import com.mariomg.circularlayouts.unit.degrees
 
 typealias Rotation = (Degrees) -> Degrees
 

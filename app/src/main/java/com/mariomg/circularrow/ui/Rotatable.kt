@@ -8,7 +8,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.mariomg.circularrow.model.toPolarCoordinates
+import com.mariomg.circularlayouts.model.toPolarCoordinates
 import kotlinx.coroutines.launch
 
 fun Modifier.rotatable(rotationState: RotationState) = composed {

@@ -1,7 +1,7 @@
 package com.mariomg.circularrow.ui
 
 import androidx.compose.ui.unit.Constraints
-import com.mariomg.circularrow.model.PI
+import com.mariomg.circularlayouts.model.PI
 import kotlin.math.sin
 
 enum class CircularRowItemsConstraints {

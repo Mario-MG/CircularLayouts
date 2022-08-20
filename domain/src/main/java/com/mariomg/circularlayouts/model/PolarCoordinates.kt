@@ -1,27 +1,13 @@
-package com.mariomg.circularrow.model
+package com.mariomg.circularlayouts.model
 
 import androidx.compose.ui.geometry.Offset
-import com.mariomg.circularrow.model.unit.Degrees
-import com.mariomg.circularrow.model.unit.Radians
-import com.mariomg.circularrow.model.unit.radians
+import com.mariomg.circularlayouts.unit.Degrees
+import com.mariomg.circularlayouts.unit.Radians
+import com.mariomg.circularlayouts.unit.radians
 import kotlin.math.*
 import kotlin.math.PI as PI_DOUBLE
 
 const val PI = PI_DOUBLE.toFloat()
-
-@JvmInline
-value class Degrees(val value: Float) {
-    fun toRadians() = Radians(value * PI / 180)
-}
-
-inline val Float.degrees: Degrees get() = Degrees(this)
-
-@JvmInline
-value class Radians(val value: Float) {
-    fun toDegrees() = Degrees(value * 180 / PI)
-}
-
-inline val Float.radians: Radians get() = Radians(this)
 
 data class PolarCoordinates(
     val radius: Float,

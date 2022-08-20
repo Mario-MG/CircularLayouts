@@ -1,6 +1,6 @@
-package com.mariomg.circularrow.model.unit
+package com.mariomg.circularlayouts.unit
 
-import com.mariomg.circularrow.model.PI
+import com.mariomg.circularlayouts.model.PI
 
 @JvmInline
 value class Degrees(val value: Float) {
