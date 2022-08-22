@@ -1,4 +1,4 @@
-package com.mariomg.circularrow.ui
+package com.mariomg.circularlayouts.rotation
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures

@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Dp
 import com.mariomg.circularlayouts.model.PolarCoordinates
+import com.mariomg.circularlayouts.rotation.RotationState
 import com.mariomg.circularlayouts.unit.degrees
 
 @Composable
