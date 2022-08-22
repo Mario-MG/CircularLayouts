@@ -29,7 +29,7 @@ fun Modifier.rotatable(rotationState: RotationState) = composed {
                 val startPositionPolar = startPositionFromCenter.toPolarCoordinates()
                 val endPositionPolar = endPositionFromCenter.toPolarCoordinates()
                 val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).toDegrees()
-                coroutineScope.launch { rotationState.rotateBy(angleOffsetInc.value) }
+                coroutineScope.launch { rotationState.rotateBy(angleOffsetInc) }
             }
         }.pointerInput(Unit) {
             detectTapGestures(

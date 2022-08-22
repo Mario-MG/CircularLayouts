@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.background),
                 ) {
-                    val rotationState = rememberRotationState(0f)
+                    val rotationState = rememberRotationState()
                     CircularRow(
                         modifier = Modifier
                             .weight(1f)

@@ -10,13 +10,15 @@ import com.mariomg.circularlayouts.CircularLayoutItemsConstraints
 import com.mariomg.circularlayouts.Rotation
 import com.mariomg.circularlayouts.model.PolarCoordinates
 import com.mariomg.circularlayouts.rotation.RotationState
+import com.mariomg.circularlayouts.unit.Degrees
 import com.mariomg.circularlayouts.unit.degrees
+import com.mariomg.circularlayouts.unit.times
 
 @Composable
 fun CircularRow(
     modifier: Modifier = Modifier,
     radius: Dp,
-    angularOffset: Float = 0f,
+    angularOffset: Degrees = 0.degrees,
     itemsConstraint: CircularLayoutItemsConstraints = CircularLayoutItemsConstraints.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
     direction: CircularLayoutDirection = CircularLayoutDirection.CLOCKWISE,
     itemRotation: Rotation = CircularLayoutItemRotation.NONE,
@@ -37,7 +39,7 @@ fun CircularRow(
         val placeables = measurables.map { measurable ->
             measurable.measure(newConstraints)
         }
-        val angleIncAbsolute = 360f / placeables.size
+        val angleIncAbsolute = 360.degrees / placeables.size
         val angleInc = when (direction) {
             CircularLayoutDirection.CLOCKWISE -> angleIncAbsolute
             CircularLayoutDirection.COUNTERCLOCKWISE -> -angleIncAbsolute
@@ -45,7 +47,7 @@ fun CircularRow(
 
         layout(width = constraints.maxWidth, height = constraints.maxHeight) {
             placeables.forEachIndexed { index, placeable ->
-                val angle = (angularOffset + index * angleInc).degrees
+                val angle = angularOffset + index * angleInc
                 val polarCoordinates = PolarCoordinates.usingDegrees(
                     radius = radius.value,
                     angle = angle,

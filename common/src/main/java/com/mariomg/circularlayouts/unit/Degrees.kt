@@ -10,9 +10,13 @@ value class Degrees(val value: Float) {
 
     operator fun minus(other: Degrees) = Degrees(this.value - other.value)
 
+    operator fun unaryMinus() = Degrees(-this.value)
+
     operator fun times(number: Number) = Degrees(this.value * number.toFloat())
 
     operator fun div(number: Number) = Degrees(this.value / number.toFloat())
+
+    operator fun rem(number: Number) = Degrees(this.value % number.toFloat())
 
     operator fun compareTo(other: Degrees) = this.value.compareTo(other.value)
 }

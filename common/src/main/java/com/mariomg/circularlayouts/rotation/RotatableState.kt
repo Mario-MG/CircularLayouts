@@ -3,10 +3,11 @@ package com.mariomg.circularlayouts.rotation
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.MutatorMutex
 import androidx.compose.runtime.mutableStateOf
+import com.mariomg.circularlayouts.unit.Degrees
 import kotlinx.coroutines.coroutineScope
 
 interface RotationScope {
-    fun rotateBy(angle: Float): Float
+    fun rotateBy(angle: Degrees)
 }
 
 interface RotatableState {
@@ -15,15 +16,15 @@ interface RotatableState {
         block: suspend RotationScope.() -> Unit
     )
 
-    fun dispatchRawDelta(delta: Float): Float
+    fun dispatchRawDelta(delta: Degrees)
 
     val isRotationInProgress: Boolean
 }
 
-private class DefaultRotatableState(val onDelta: (Float) -> Float) : RotatableState {
+private class DefaultRotatableState(val onDelta: (Degrees) -> Unit) : RotatableState {
 
     private val rotationScope: RotationScope = object : RotationScope {
-        override fun rotateBy(angle: Float): Float = onDelta(angle)
+        override fun rotateBy(angle: Degrees): Unit = onDelta(angle)
     }
 
     private val rotationMutex = MutatorMutex()
@@ -44,14 +45,14 @@ private class DefaultRotatableState(val onDelta: (Float) -> Float) : RotatableSt
         }
     }
 
-    override fun dispatchRawDelta(delta: Float): Float {
-        return onDelta(delta)
+    override fun dispatchRawDelta(delta: Degrees) {
+        onDelta(delta)
     }
 
     override val isRotationInProgress: Boolean
         get() = isRotatingState.value
 }
 
-fun RotatableState(consumeRotationDelta: (Float) -> Float): RotatableState {
+fun RotatableState(consumeRotationDelta: (Degrees) -> Unit): RotatableState {
     return DefaultRotatableState(consumeRotationDelta)
 }

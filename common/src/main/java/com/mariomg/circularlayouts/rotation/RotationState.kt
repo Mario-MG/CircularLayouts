@@ -5,11 +5,13 @@ import androidx.compose.foundation.MutatePriority
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.mariomg.circularlayouts.unit.Degrees
+import com.mariomg.circularlayouts.unit.degrees
 
-class RotationState(initialAngularOffset: Float = 0f) : RotatableState {
+class RotationState(initialAngularOffset: Degrees = 0.degrees) : RotatableState {
 
     private var _angularOffset by mutableStateOf(initialAngularOffset)
-    var angularOffset: Float
+    var angularOffset: Degrees
         get() = _angularOffset
         private set(value) {
             if (value % 360 != _angularOffset) {
@@ -19,7 +21,6 @@ class RotationState(initialAngularOffset: Float = 0f) : RotatableState {
 
     private val rotatableState = RotatableState {
         this.angularOffset += it
-        it
     }
 
     override suspend fun rotate(
@@ -27,33 +28,34 @@ class RotationState(initialAngularOffset: Float = 0f) : RotatableState {
         block: suspend RotationScope.() -> Unit
     ): Unit = rotatableState.rotate(rotationPriority, block)
 
-    override fun dispatchRawDelta(delta: Float): Float =
+    override fun dispatchRawDelta(delta: Degrees) {
         rotatableState.dispatchRawDelta(delta)
+    }
 
     override val isRotationInProgress: Boolean
         get() = rotatableState.isRotationInProgress
 
-    suspend fun rotateBy(angularOffset: Float) {
+    suspend fun rotateBy(angularOffset: Degrees) {
         rotate {
             rotateBy(angularOffset)
         }
     }
 
-    suspend fun rotateTo(angularOffset: Float) = this.rotateBy(angularOffset - this.angularOffset)
+    suspend fun rotateTo(angularOffset: Degrees) = this.rotateBy(angularOffset - this.angularOffset)
 
     suspend fun animateRotateBy(
-        angularOffset: Float,
+        angularOffset: Degrees,
         animationSpec: AnimationSpec<Float> = tween(durationMillis = DEFAULT_ANIMATION_DURATION_MILLIS)
     ) {
         rotate {
             var previousValue = 0f
             animate(
                 initialValue = 0f,
-                targetValue = angularOffset,
+                targetValue = angularOffset.value,
                 animationSpec = animationSpec,
             ) { currentValue, _ ->
                 val increment = currentValue - previousValue
-                rotateBy(increment)
+                rotateBy(increment.degrees)
                 previousValue += increment
             }
         }
@@ -61,18 +63,18 @@ class RotationState(initialAngularOffset: Float = 0f) : RotatableState {
 
     suspend fun stopRotation() {
         rotate {
-            rotateBy(0f)
+            rotateBy(0.degrees)
         }
     }
 
     suspend fun animateRotateTo(
-        angularOffset: Float,
+        angularOffset: Degrees,
         animationSpec: AnimationSpec<Float> = tween(durationMillis = DEFAULT_ANIMATION_DURATION_MILLIS)
     ) = animateRotateBy(angularOffset - this.angularOffset, animationSpec)
 
     suspend fun rotateInfinitely(durationMillisPerCycle: Int = DEFAULT_ANIMATION_DURATION_MILLIS) =
         animateRotateBy(
-            angularOffset = 360f,
+            angularOffset = 360.degrees,
             animationSpec = infiniteRepeatable(animation = TweenSpec(
                 durationMillis = durationMillisPerCycle,
                 easing = LinearEasing,
@@ -83,14 +85,14 @@ class RotationState(initialAngularOffset: Float = 0f) : RotatableState {
         private const val DEFAULT_ANIMATION_DURATION_MILLIS = 2000
 
         val Saver: Saver<RotationState, Float> = Saver(
-            save = { it._angularOffset },
-            restore = { RotationState(it) }
+            save = { it._angularOffset.value },
+            restore = { RotationState(it.degrees) }
         )
     }
 }
 
 @Composable
-fun rememberRotationState(initialAngularOffset: Float = 0f): RotationState {
+fun rememberRotationState(initialAngularOffset: Degrees = 0.degrees): RotationState {
     return rememberSaveable(saver = RotationState.Saver) {
         RotationState(initialAngularOffset = initialAngularOffset)
     }

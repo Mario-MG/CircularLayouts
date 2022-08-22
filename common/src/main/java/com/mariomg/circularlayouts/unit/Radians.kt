@@ -10,9 +10,13 @@ value class Radians(val value: Float) {
 
     operator fun minus(other: Radians) = Radians(this.value - other.value)
 
+    operator fun unaryMinus() = Radians(-this.value)
+
     operator fun times(number: Number) = Radians(this.value * number.toFloat())
 
     operator fun div(number: Number) = Radians(this.value / number.toFloat())
+
+    operator fun rem(number: Number) = Radians(this.value % number.toFloat())
 
     operator fun compareTo(other: Radians) = this.value.compareTo(other.value)
 }
