@@ -1,9 +1,13 @@
-package com.mariomg.circularrow.ui
+package com.mariomg.circularlayouts.circularrow
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Dp
+import com.mariomg.circularlayouts.CircularLayoutDirection
+import com.mariomg.circularlayouts.CircularLayoutItemRotation
+import com.mariomg.circularlayouts.CircularLayoutItemsConstraints
+import com.mariomg.circularlayouts.Rotation
 import com.mariomg.circularlayouts.model.PolarCoordinates
 import com.mariomg.circularlayouts.rotation.RotationState
 import com.mariomg.circularlayouts.unit.degrees
@@ -13,9 +17,9 @@ fun CircularRow(
     modifier: Modifier = Modifier,
     radius: Dp,
     angularOffset: Float = 0f,
-    itemsConstraint: CircularRowItemsConstraints = CircularRowItemsConstraints.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
-    direction: CircularRowDirection = CircularRowDirection.CLOCKWISE,
-    itemRotation: Rotation = CircularRowItemRotation.NONE,
+    itemsConstraint: CircularLayoutItemsConstraints = CircularLayoutItemsConstraints.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
+    direction: CircularLayoutDirection = CircularLayoutDirection.CLOCKWISE,
+    itemRotation: Rotation = CircularLayoutItemRotation.NONE,
     content: @Composable () -> Unit,
 ) {
     Layout(
@@ -35,8 +39,8 @@ fun CircularRow(
         }
         val angleIncAbsolute = 360f / placeables.size
         val angleInc = when (direction) {
-            CircularRowDirection.CLOCKWISE -> angleIncAbsolute
-            CircularRowDirection.COUNTERCLOCKWISE -> -angleIncAbsolute
+            CircularLayoutDirection.CLOCKWISE -> angleIncAbsolute
+            CircularLayoutDirection.COUNTERCLOCKWISE -> -angleIncAbsolute
         }
 
         layout(width = constraints.maxWidth, height = constraints.maxHeight) {
@@ -62,9 +66,9 @@ fun CircularRow(
     modifier: Modifier = Modifier,
     radius: Dp,
     rotationState: RotationState,
-    itemsConstraint: CircularRowItemsConstraints = CircularRowItemsConstraints.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
-    direction: CircularRowDirection = CircularRowDirection.CLOCKWISE,
-    itemRotation: Rotation = CircularRowItemRotation.NONE,
+    itemsConstraint: CircularLayoutItemsConstraints = CircularLayoutItemsConstraints.CONSTRAIN_TO_PARENT_AND_SIBLINGS,
+    direction: CircularLayoutDirection = CircularLayoutDirection.CLOCKWISE,
+    itemRotation: Rotation = CircularLayoutItemRotation.NONE,
     content: @Composable () -> Unit,
 ) {
     val offset  = rotationState.angularOffset

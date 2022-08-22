@@ -1,4 +1,4 @@
-package com.mariomg.circularrow.ui.theme
+package com.mariomg.circularlayouts.sample.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

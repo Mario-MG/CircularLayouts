@@ -1,11 +1,11 @@
-package com.mariomg.circularrow.ui
+package com.mariomg.circularlayouts
 
 import com.mariomg.circularlayouts.unit.Degrees
 import com.mariomg.circularlayouts.unit.degrees
 
 typealias Rotation = (Degrees) -> Degrees
 
-enum class CircularRowItemRotation(private val rotation: Rotation) : Rotation {
+enum class CircularLayoutItemRotation(private val rotation: Rotation) : Rotation {
     NONE(rotation = { 0.degrees }),
     TANGENT(rotation = { it }),
     PERPENDICULAR_CLOCKWISE(rotation = { it + 90.degrees }),

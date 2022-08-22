@@ -1,10 +1,10 @@
-package com.mariomg.circularrow.ui
+package com.mariomg.circularlayouts
 
 import androidx.compose.ui.unit.Constraints
 import com.mariomg.circularlayouts.model.PI
 import kotlin.math.sin
 
-enum class CircularRowItemsConstraints {
+enum class CircularLayoutItemsConstraints {
     NONE {
         override fun calculateConstraints(
             parentConstraints: Constraints,
