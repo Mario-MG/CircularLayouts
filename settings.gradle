@@ -13,4 +13,6 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "CircularRow"
-include ':app'
+include ':sample'
+include ':common'
+include ':circularrow'
