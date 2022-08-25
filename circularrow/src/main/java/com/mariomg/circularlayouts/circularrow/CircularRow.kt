@@ -73,7 +73,7 @@ fun CircularRow(
     itemRotation: Rotation = CircularLayoutItemRotation.NONE,
     content: @Composable () -> Unit,
 ) {
-    val offset  = rotationState.angularOffset
+    val offset = rotationState.angularOffset
 
     CircularRow(
         modifier = modifier,

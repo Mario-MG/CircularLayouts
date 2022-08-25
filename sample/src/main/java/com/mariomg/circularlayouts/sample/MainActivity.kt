@@ -28,7 +28,9 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colors.background),
                 ) {
-                    val rotationState = rememberRotationState()
+                    val rotationState = rememberRotationState(
+                        rotatableFraction = 2,
+                    )
                     CircularRow(
                         modifier = Modifier
                             .weight(1f)
@@ -38,10 +40,11 @@ class MainActivity : ComponentActivity() {
                         direction = CircularLayoutDirection.CCW,
                         itemRotation = CircularLayoutItemRotation.TANGENT,
                     ) {
+                        val colors = listOf(Color.Red, Color.Blue, Color.Green, Color.Gray, Color.Magenta)
                         for (index in 1..5) {
                             Text(
                                 "Prueba de CircularRow $index",
-                                modifier = Modifier.background(Color.Red),
+                                modifier = Modifier.background(colors[index - 1]),
                             )
                         }
                     }
