@@ -1,14 +1,18 @@
 package com.mariomg.circularlayouts.rotation
 
+import android.os.Parcelable
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import com.mariomg.circularlayouts.unit.Degrees
-import com.mariomg.circularlayouts.unit.degrees
+import com.mariomg.circularlayouts.unit.*
+import kotlinx.parcelize.Parcelize
 
-class RotationState(initialAngularOffset: Degrees = 0.degrees) : RotatableState {
+class RotationState(
+    initialAngularOffset: Degrees = 0.degrees,
+    internal val rotatableFraction: Int = 0,
+) : RotatableState {
 
     private var _angularOffset by mutableStateOf(initialAngularOffset)
     var angularOffset: Degrees
@@ -35,23 +39,23 @@ class RotationState(initialAngularOffset: Degrees = 0.degrees) : RotatableState 
     override val isRotationInProgress: Boolean
         get() = rotatableState.isRotationInProgress
 
-    suspend fun rotateBy(angularOffset: Degrees) {
+    suspend fun rotateBy(angle: Degrees) {
         rotate {
-            rotateBy(angularOffset)
+            rotateBy(angle)
         }
     }
 
     suspend fun rotateTo(angularOffset: Degrees) = this.rotateBy(angularOffset - this.angularOffset)
 
     suspend fun animateRotateBy(
-        angularOffset: Degrees,
+        angle: Degrees,
         animationSpec: AnimationSpec<Float> = tween(durationMillis = DEFAULT_ANIMATION_DURATION_MILLIS)
     ) {
         rotate {
             var previousValue = 0f
             animate(
                 initialValue = 0f,
-                targetValue = angularOffset.value,
+                targetValue = angle.value,
                 animationSpec = animationSpec,
             ) { currentValue, _ ->
                 val increment = currentValue - previousValue
@@ -74,26 +78,58 @@ class RotationState(initialAngularOffset: Degrees = 0.degrees) : RotatableState 
 
     suspend fun rotateInfinitely(durationMillisPerCycle: Int = DEFAULT_ANIMATION_DURATION_MILLIS) =
         animateRotateBy(
-            angularOffset = 360.degrees,
+            angle = 360.degrees,
             animationSpec = infiniteRepeatable(animation = TweenSpec(
                 durationMillis = durationMillisPerCycle,
                 easing = LinearEasing,
             ))
         )
 
+    suspend fun onRotationFinished() {
+        if (rotatableFraction != 0) {
+            val allowedRotationAngle = 360.degrees / rotatableFraction
+            val remainder = abs(angularOffset % allowedRotationAngle)
+            val angleToRotate = if (remainder < allowedRotationAngle / 2) -remainder
+                else allowedRotationAngle - remainder
+            animateRotateBy(sign(angularOffset) * angleToRotate, animationSpec = tween())
+        }
+    }
+
     companion object {
         private const val DEFAULT_ANIMATION_DURATION_MILLIS = 2000
 
-        val Saver: Saver<RotationState, Float> = Saver(
-            save = { it._angularOffset.value },
-            restore = { RotationState(it.degrees) }
+        internal val Saver: Saver<RotationState, RotationStateData> = Saver(
+            save = { it.toRotationStateData() },
+            restore = { it.toRotationState() }
         )
     }
 }
 
 @Composable
-fun rememberRotationState(initialAngularOffset: Degrees = 0.degrees): RotationState {
+fun rememberRotationState(
+    initialAngularOffset: Degrees = 0.degrees,
+    rotatableFraction: Int = 0,
+): RotationState {
     return rememberSaveable(saver = RotationState.Saver) {
-        RotationState(initialAngularOffset = initialAngularOffset)
+        RotationState(
+            initialAngularOffset = initialAngularOffset,
+            rotatableFraction = rotatableFraction,
+        )
     }
 }
+
+@Parcelize
+internal data class RotationStateData (
+    val angularOffset: Float,
+    val rotatableFraction: Int,
+) : Parcelable {
+    fun toRotationState() = RotationState(
+        initialAngularOffset = angularOffset.degrees,
+        rotatableFraction = rotatableFraction,
+    )
+}
+
+private fun RotationState.toRotationStateData() = RotationStateData(
+    angularOffset = angularOffset.value,
+    rotatableFraction = rotatableFraction,
+)

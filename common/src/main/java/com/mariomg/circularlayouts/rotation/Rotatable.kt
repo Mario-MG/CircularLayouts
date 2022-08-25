@@ -22,7 +22,13 @@ fun Modifier.rotatable(rotationState: RotationState) = composed {
         )
     }.then(
         Modifier.pointerInput(Unit) {
-            detectDragGestures { change, dragAmount ->
+            detectDragGestures(
+                onDragEnd = {
+                    coroutineScope.launch {
+                        rotationState.onRotationFinished()
+                    }
+                }
+            ) { change, dragAmount ->
                 change.consume()
                 val startPositionFromCenter = change.previousPosition - center
                 val endPositionFromCenter = startPositionFromCenter + dragAmount
