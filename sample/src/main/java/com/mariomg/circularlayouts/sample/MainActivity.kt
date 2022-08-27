@@ -15,7 +15,6 @@ import com.mariomg.circularlayouts.CircularLayoutDirection
 import com.mariomg.circularlayouts.CircularLayoutItemRotation
 import com.mariomg.circularlayouts.circularrow.CircularRow
 import com.mariomg.circularlayouts.rotation.rememberRotationState
-import com.mariomg.circularlayouts.rotation.rotatable
 import com.mariomg.circularlayouts.sample.ui.theme.SampleTheme
 
 class MainActivity : ComponentActivity() {
@@ -32,9 +31,7 @@ class MainActivity : ComponentActivity() {
                         rotatableFraction = 2,
                     )
                     CircularRow(
-                        modifier = Modifier
-                            .weight(1f)
-                            .rotatable(rotationState),
+                        modifier = Modifier.fillMaxSize(),
                         radius = 250.dp,
                         rotationState = rotationState,
                         direction = CircularLayoutDirection.CCW,

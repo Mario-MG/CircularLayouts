@@ -23,20 +23,21 @@ fun Modifier.rotatable(rotationState: RotationState) = composed {
     }.then(
         Modifier.pointerInput(Unit) {
             detectDragGestures(
+                onDrag = { change, dragAmount ->
+                    change.consume()
+                    val startPositionFromCenter = change.previousPosition - center
+                    val endPositionFromCenter = startPositionFromCenter + dragAmount
+                    val startPositionPolar = startPositionFromCenter.toPolarCoordinates()
+                    val endPositionPolar = endPositionFromCenter.toPolarCoordinates()
+                    val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).toDegrees()
+                    coroutineScope.launch { rotationState.rotateBy(angleOffsetInc) }
+                },
                 onDragEnd = {
                     coroutineScope.launch {
                         rotationState.onRotationFinished()
                     }
                 }
-            ) { change, dragAmount ->
-                change.consume()
-                val startPositionFromCenter = change.previousPosition - center
-                val endPositionFromCenter = startPositionFromCenter + dragAmount
-                val startPositionPolar = startPositionFromCenter.toPolarCoordinates()
-                val endPositionPolar = endPositionFromCenter.toPolarCoordinates()
-                val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).toDegrees()
-                coroutineScope.launch { rotationState.rotateBy(angleOffsetInc) }
-            }
+            )
         }.pointerInput(Unit) {
             detectTapGestures(
                 onPress = {

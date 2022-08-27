@@ -10,6 +10,7 @@ import com.mariomg.circularlayouts.CircularLayoutItemsConstraints
 import com.mariomg.circularlayouts.Rotation
 import com.mariomg.circularlayouts.model.PolarCoordinates
 import com.mariomg.circularlayouts.rotation.RotationState
+import com.mariomg.circularlayouts.rotation.rotatable
 import com.mariomg.circularlayouts.unit.Degrees
 import com.mariomg.circularlayouts.unit.degrees
 import com.mariomg.circularlayouts.unit.times
@@ -76,7 +77,7 @@ fun CircularRow(
     val offset = rotationState.angularOffset
 
     CircularRow(
-        modifier = modifier,
+        modifier = modifier.rotatable(rotationState),
         radius = radius,
         angularOffset = offset,
         itemsConstraint = itemsConstraint,
