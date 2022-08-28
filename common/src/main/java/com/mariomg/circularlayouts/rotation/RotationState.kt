@@ -6,8 +6,11 @@ import androidx.compose.foundation.MutatePriority
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.mariomg.circularlayouts.model.AngularVelocity
 import com.mariomg.circularlayouts.unit.*
 import kotlinx.parcelize.Parcelize
+import kotlin.math.abs
+import kotlin.math.sign
 
 class RotationState(
     initialAngularOffset: Degrees = 0.degrees,
@@ -78,21 +81,45 @@ class RotationState(
 
     suspend fun rotateInfinitely(durationMillisPerCycle: Int = DEFAULT_ANIMATION_DURATION_MILLIS) =
         animateRotateBy(
-            angle = 360.degrees,
+            angle =  sign(durationMillisPerCycle.toFloat()) * 360.degrees,
             animationSpec = infiniteRepeatable(animation = TweenSpec(
-                durationMillis = durationMillisPerCycle,
+                durationMillis = abs(durationMillisPerCycle),
                 easing = LinearEasing,
             ))
         )
 
-    suspend fun onRotationFinished() {
+    internal suspend fun onRotationFinished() {
         if (rotatableFraction != 0) {
             val allowedRotationAngle = 360.degrees / rotatableFraction
             val remainder = abs(angularOffset % allowedRotationAngle)
             val angleToRotate = if (remainder < allowedRotationAngle / 2) -remainder
-                else allowedRotationAngle - remainder
+            else allowedRotationAngle - remainder
             animateRotateBy(sign(angularOffset) * angleToRotate, animationSpec = tween())
         }
+    }
+
+    internal suspend fun onUserRotationFinished(velocity: AngularVelocity) {
+        rotate {
+            val animationState = AnimationState(initialValue = velocity.degreesPerMilli.value)
+            var previousFrameTimeNanos = AnimationConstants.UnspecifiedTime
+            animationState.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessLow,
+                    visibilityThreshold = 0.1f,
+                ),
+            ) {
+                val lastFrameTimeNanos =
+                    if (previousFrameTimeNanos != AnimationConstants.UnspecifiedTime)
+                        previousFrameTimeNanos
+                    else startTimeNanos
+                val currentFrameTimeNanos = this.lastFrameTimeNanos
+                val timeDiffMillis = (currentFrameTimeNanos - lastFrameTimeNanos) / 1_000_000
+                rotateBy(this.value.degrees * timeDiffMillis)
+                previousFrameTimeNanos = currentFrameTimeNanos
+            }
+        }
+        onRotationFinished() // TODO: Adjust so it doesn't look so weird
     }
 
     companion object {

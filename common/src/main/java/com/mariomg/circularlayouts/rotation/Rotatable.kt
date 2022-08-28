@@ -8,12 +8,15 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import com.mariomg.circularlayouts.model.AngularVelocity
 import com.mariomg.circularlayouts.model.toPolarCoordinates
+import com.mariomg.circularlayouts.unit.degrees
 import kotlinx.coroutines.launch
 
 fun Modifier.rotatable(rotationState: RotationState) = composed {
     val coroutineScope = rememberCoroutineScope()
     var center by remember { mutableStateOf(Offset(0f, 0f)) }
+    var lastVelocity by remember { mutableStateOf(AngularVelocity(0.degrees)) }
     onGloballyPositioned { coordinates ->
         val size = coordinates.size
         center = Offset(
@@ -29,12 +32,13 @@ fun Modifier.rotatable(rotationState: RotationState) = composed {
                     val endPositionFromCenter = startPositionFromCenter + dragAmount
                     val startPositionPolar = startPositionFromCenter.toPolarCoordinates()
                     val endPositionPolar = endPositionFromCenter.toPolarCoordinates()
-                    val angleOffsetInc = (endPositionPolar.angle - startPositionPolar.angle).toDegrees()
-                    coroutineScope.launch { rotationState.rotateBy(angleOffsetInc) }
+                    val angleDiff = (endPositionPolar.angle - startPositionPolar.angle).toDegrees()
+                    coroutineScope.launch { rotationState.rotateBy(angleDiff) }
+                    lastVelocity = AngularVelocity(angleDiff / (change.uptimeMillis - change.previousUptimeMillis))
                 },
                 onDragEnd = {
                     coroutineScope.launch {
-                        rotationState.onRotationFinished()
+                        rotationState.onUserRotationFinished(lastVelocity)
                     }
                 }
             )
